@@ -1879,5 +1879,5 @@ return {
 	// staticProgram: staticProgram
 };
 
-}();
+}());
 
