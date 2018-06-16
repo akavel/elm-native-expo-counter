@@ -1856,6 +1856,21 @@ var mostEvents = [
 var allEvents = mostEvents.concat('wheel', 'scroll');
 
 
+//////// extra ////////
+
+function beginnerProgram(impl)
+{
+	return function(flagDecoder)
+	{
+		return function(object, moduleName)
+		{
+			object['start'] = function()
+			{
+			}
+		}
+	}
+}
+
 return {
 	// node: node,
 	// text: text,
@@ -1877,6 +1892,9 @@ return {
 	// program: program,
 	// programWithFlags: programWithFlags,
 	// staticProgram: staticProgram
+
+	//// extra ////
+	beginnerProgram: beginnerProgram
 };
 
 }());
