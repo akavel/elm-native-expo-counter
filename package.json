@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "react-native-scripts": "1.14.0",
+    "chokidar-cli": "^1.2.0",
+    "elm": "~0.18.0",
     "jest-expo": "~27.0.0",
+    "react-native-scripts": "1.14.0",
     "react-test-renderer": "16.3.1"
   },
   "main": "./node_modules/react-native-scripts/build/bin/crna-entry.js",
   "scripts": {
+    "watch-elm": "chokidar '**/*.elm' -c 'npm run build' --initial --verbose",
     "start": "react-native-scripts start",
     "start0": "react-native-scripts start --reset-cache",
     "build": "elm-make src/Main.elm --output=elm.js",
