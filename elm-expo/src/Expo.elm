@@ -26,8 +26,15 @@ beginnerProgram :
     , update : msg -> model -> model
     }
     -> Program Never model msg
-beginnerProgram =
-    Native.Expo.beginnerProgram
+beginnerProgram {model, view, update} =
+  program
+    { init = (model, Cmd.none)
+    , update = \msg model -> (update msg model, Cmd.none)
+    , view = view
+    , subscriptions = \_ -> Sub.none
+    }
+-- beginnerProgram =
+--     Native.Expo.beginnerProgram
 
 
 {-| -}

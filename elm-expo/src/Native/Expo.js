@@ -1869,6 +1869,7 @@ var allEvents = mostEvents.concat('wheel', 'scroll');
 
 function makeProgram(flagChecker)
 {
+	console.log('...makeProgram!...');
 	return (function(impl)
 	{
 		return function(flagDecoder)
@@ -1897,7 +1898,7 @@ function expoSetup(impl, object, moduleName, flagChecker)
 	object['run'] = function(appParams, flags)
 	{
 		var fakeDOM = new ExpoDOM(appParams.rootTag);
-		localDoc = fakeDom;
+		localDoc = fakeDOM;
 		return _elm_lang$core$Native_Platform.initialize(
 			flagChecker(impl.init, flags, fakeDOM),
 			impl.update,
@@ -1921,7 +1922,7 @@ ExpoDOM.prototype.inflate = function()
 {
 	if (!this.inflated)
 	{
-		RN.UIManager.createView(child.tag, child.name, child.root, child.attrs);
+		RN.UIManager.createView(this.tag, this.name, this.root, this.attrs);
 		this.inflated = true;
 	}
 }
@@ -2083,7 +2084,7 @@ function beginnerProgram(impl)
 
 return {
 	// node: node,
-	// text: text,
+	text: text,
 	// custom: custom,
 	// map: F2(map),
 
@@ -2099,12 +2100,12 @@ return {
 	// lazy3: F4(lazy3),
 	// keyedNode: F3(keyedNode),
 
-	// program: program,
+	program: program,
 	// programWithFlags: programWithFlags,
 	// staticProgram: staticProgram
 
 	//// extra ////
-	beginnerProgram: beginnerProgram
+	// beginnerProgram: beginnerProgram
 };
 
 }());
