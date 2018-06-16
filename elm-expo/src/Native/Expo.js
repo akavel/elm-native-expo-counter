@@ -2023,7 +2023,7 @@ function allocateTag() {
 	return tag;
 }
 
-ExpoDOM.prototype.createTextNode(text)
+ExpoDOM.prototype.createTextNode = function(text)
 {
 	var child = new ExpoDOM(allocateTag());
 	child.name = 'RCTRawText';
@@ -2032,7 +2032,7 @@ ExpoDOM.prototype.createTextNode(text)
 	// RN.UIManager.createView(child.tag, 'RCTRawText', this.tag, {text: text});
 	return child;
 }
-ExpoDOM.prototype.createElement(name)
+ExpoDOM.prototype.createElement = function(name)
 {
 	var child = new ExpoDOM(allocateTag());
 	child.name = name;
@@ -2041,7 +2041,7 @@ ExpoDOM.prototype.createElement(name)
 	// RN.UIManager.createView(child.tag, name, this.tag, {});
 	return child;
 }
-ExpoDOM.prototype.setAttribute(key, value)
+ExpoDOM.prototype.setAttribute = function(key, value)
 {
 	this.attrs[key] = value;
 	if (this.inflated())
@@ -2049,7 +2049,7 @@ ExpoDOM.prototype.setAttribute(key, value)
 		RN.UIManager.updateView(this.tag, this.name, this.attrs);
 	}
 }
-ExpoDOM.prototype.removeAttribute(key)
+ExpoDOM.prototype.removeAttribute = function(key)
 {
 	delete this.attrs[key];
 	if (this.inflated())
@@ -2057,7 +2057,7 @@ ExpoDOM.prototype.removeAttribute(key)
 		RN.UIManager.updateView(this.tag, this.name, this.attrs);
 	}
 }
-ExpoDOM.prototype.replaceData(_, _, text)
+ExpoDOM.prototype.replaceData = function(_1, _2, text)
 {
 	this.attrs.text = text;
 	if (this.inflated())
