@@ -11,7 +11,7 @@
   },
   "main": "./node_modules/react-native-scripts/build/bin/crna-entry.js",
   "scripts": {
-    "watch-elm": "chokidar \"**/*.elm\" -c \"npm run build\" --initial --verbose",
+    "watch-elm": "chokidar \"src/**/*.elm\" \"elm-expo/src/**/*.elm\" \"elm-expo/src/**/*.js\" \"elm-native-ui/src/**/*.elm\" \"elm-native-ui/src/**/*.js\" -c \"npm run build\" --initial",
     "start": "react-native-scripts start",
     "start0": "react-native-scripts start --reset-cache",
     "build": "elm-make src/Main.elm --output=elm.js",

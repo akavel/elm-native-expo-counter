@@ -6,7 +6,8 @@
     "native-modules": true,
     "source-directories": [
         "src",
-        "elm-native-ui/src"
+        "elm-native-ui/src",
+        "elm-expo/src"
     ],
     "exposed-modules": [],
     "dependencies": {
