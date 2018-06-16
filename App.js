@@ -1,12 +1,18 @@
 import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js';
 MessageQueue.spy(info => {
   var name = `${info.module ? info.module + '.' : ''}${info.method}`;
-  if (name !== 'RCTDeviceEventEmitter.emit' &&
-    name !== 'Networking.sendRequest') {
+  var exclude = [
+    'RCTDeviceEventEmitter.emit',
+    'Networking.sendRequest',
+    'Timing.createTimer',
+    'JSTimers.callTimers',
+    'WebSocketModule.connect',
+  ];
+  if (!exclude.includes(name)) {
     // console.log(name);
     console.log(`${info.type === 0 ? 'N->JS' : 'JS->N'} : ` +
       `${info.module ? info.module + '.' : ''}${info.method}` +
-      `(${JSON.stringify(info.args)})`,
+      `(${JSON.stringify(info.args).slice(1, -1)})`,
     );
   }
 });
