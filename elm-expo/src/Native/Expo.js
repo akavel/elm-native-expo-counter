@@ -1393,21 +1393,24 @@ var programWithFlags = makeProgram(checkYesFlags);
 
 function makeProgram(flagChecker)
 {
-	return F2(function(debugWrap, impl)
+	// TODO(akavel): can we have debug somehow enabled?
+	// return F2(function(debugWrap, impl)
+	return (function(impl)
 	{
 		return function(flagDecoder)
 		{
 			return function(object, moduleName, debugMetadata)
 			{
 				var checker = flagChecker(flagDecoder, moduleName);
-				if (typeof debugMetadata === 'undefined')
-				{
+				// TODO(akavel): can we have debug somehow enabled?
+				// if (typeof debugMetadata === 'undefined')
+				// {
 					normalSetup(impl, object, moduleName, checker);
-				}
-				else
-				{
-					debugSetup(A2(debugWrap, debugMetadata, impl), object, moduleName, checker);
-				}
+				// }
+				// else
+				// {
+				// 	debugSetup(A2(debugWrap, debugMetadata, impl), object, moduleName, checker);
+				// }
 			};
 		};
 	});
@@ -1864,8 +1867,9 @@ function beginnerProgram(impl)
 	{
 		return function(object, moduleName)
 		{
-			object['start'] = function()
+			object['run'] = function(appParameters)
 			{
+				console.log("...hello in beginnerProgram!..." + appParameters.rootTag);
 			}
 		}
 	}

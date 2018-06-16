@@ -17,22 +17,21 @@ MessageQueue.spy(info => {
   }
 });
 
+const Elm = require('./elm');
+
 import { NativeModules } from 'react-native'
-// import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge.js';
-// console.log(`....BB is: ${JSON.stringify(BatchedBridge)}`);
-// var appreg = BatchedBridge.getCallableModule('AppRegistry');
-// console.log(`....appreg is: ${JSON.stringify(appreg)}`);
 
 console.log("...Hijacking RN app...");
 import { AppRegistry } from 'react-native';
-console.log(`....AR is: ${Object.keys(AppRegistry)}`);
-console.log(`....AR.rR is: ${AppRegistry.registerRunnable}`);
+// console.log(`....AR is: ${Object.keys(AppRegistry)}`);
+// console.log(`....AR.rR is: ${AppRegistry.registerRunnable}`);
 var oldrc = AppRegistry.registerComponent;
 AppRegistry.registerComponent = (a,b,c) => {
-  console.log(`IN RC! ${a} / ${c}`);
+  // console.log(`IN RC! ${a} / ${c}`);
   if (a === 'main') {
-    var newmain = () => {
+    var newmain = (appParameters) => {
       console.log('...hijack called!...');
+      Elm.Main.run(appParameters);
       NativeModules.DialogManagerAndroid.showAlert(
         {title: 'hi raw'},
         errorMessage => console.warn(errorMessage),
@@ -46,6 +45,3 @@ AppRegistry.registerComponent = (a,b,c) => {
   return oldrc(a,b,c);
 };
 console.log('...attempted hijack end');
-
-const Elm = require('./elm');
-export default Elm.Main.start();
