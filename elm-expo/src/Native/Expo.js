@@ -1,6 +1,7 @@
 var _user$project$Native_Expo = (function () {
 
 var ReactNative = require('react-native');
+var RN = ReactNative;
 var React = require('react');
 // var toArray = _elm_lang$core$Native_List.toArray;
 
@@ -389,6 +390,7 @@ function applyFacts(domNode, eventNode, facts)
 				applyAttrsNS(domNode, value);
 				break;
 
+			// TODO(akavel): can this ever happen? if yes, how?
 			case 'value':
 				if (domNode[key] !== value)
 				{
@@ -1391,6 +1393,7 @@ function applyPatchReorderEndInsertsHelp(endInserts, patch)
 var program = makeProgram(checkNoFlags);
 var programWithFlags = makeProgram(checkYesFlags);
 
+/*
 function makeProgram(flagChecker)
 {
 	// TODO(akavel): can we have debug somehow enabled?
@@ -1415,6 +1418,7 @@ function makeProgram(flagChecker)
 		};
 	});
 }
+*/
 
 function staticProgram(vNode)
 {
@@ -1479,6 +1483,7 @@ function checkYesFlags(flagDecoder, moduleName)
 	};
 }
 
+// FIXME(akavel): override (domNode is appParameters)
 function crash(errorMessage, domNode)
 {
 	if (domNode)
@@ -1860,6 +1865,207 @@ var allEvents = mostEvents.concat('wheel', 'scroll');
 
 
 //////// extra ////////
+
+
+function makeProgram(flagChecker)
+{
+	return (function(impl)
+	{
+		return function(flagDecoder)
+		{
+			return function(object, moduleName, debugMetadata)
+			{
+				var checker = flagChecker(flagDecoder, moduleName);
+				expoSetup(impl, object, moduleName, checker);
+				// TODO(akavel): can we have debug somehow enabled?
+				// if (typeof debugMetadata === 'undefined')
+				// {
+				// 	normalSetup(impl, object, moduleName, checker);
+				// }
+				// else
+				// {
+				// 	debugSetup(A2(debugWrap, debugMetadata, impl), object, moduleName, checker);
+				// }
+			};
+		};
+	});
+}
+
+
+function expoSetup(impl, object, moduleName, flagChecker)
+{
+	object['run'] = function(appParams, flags)
+	{
+		var fakeDOM = new ExpoDOM(appParams.rootTag);
+		localDoc = fakeDom;
+		return _elm_lang$core$Native_Platform.initialize(
+			flagChecker(impl.init, flags, fakeDOM),
+			impl.update,
+			impl.subscriptions,
+			normalRenderer(fakeDOM, impl.view)
+		);
+	};
+}
+
+
+// TODO(akavel): make sure I'm not shooting myself in the foot somehow as a JS newb :/
+function ExpoDOM(tag)
+{
+	this.tag = tag;
+	this.childNodes = [];
+}
+
+// TODO(akavel): makeStepper(), setTimeout(), applyEvents()
+
+ExpoDOM.prototype.inflate = function()
+{
+	if (!this.inflated)
+	{
+		RN.UIManager.createView(child.tag, child.name, child.root, child.attrs);
+		this.inflated = true;
+	}
+}
+ExpoDOM.prototype.orphanize = function()
+{
+	if (this.inflated && this.parentNode)
+	{
+		this.parentNode.removeChild(this);
+	}
+}
+ExpoDOM.prototype.resetLast = function()
+{
+	var n = this.childNodes.length;
+	if (n > 0)
+	{
+		this.lastChild = this.childNodes[n-1];
+	}
+	else
+	{
+		delete this.lastChild;
+	}
+}
+
+ExpoDOM.prototype.createDocumentFragment = function()
+{
+	return new ExpoDOM('FRAG');
+}
+ExpoDOM.prototype.appendChild = function(child)
+{
+	if (child.tag === 'FRAG')
+	{
+		// TODO(akavel): optimize this
+		for (var i = 0; i < child.childNodes.length; i++)
+		{
+			this.appendChild(child.childNodes[i]);
+		}
+		return;
+	}
+	child.orphanize();
+	child.inflate();
+	RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length]);
+	this.childNodes.push(child);
+	child.parentNode = this;
+	this.lastChild = child;
+}
+ExpoDOM.prototype.insertBefore = function(newNode, refNode)
+{
+	if (refNode === null)
+	{
+		return this.appendNode(newNode);
+	}
+	var i = this.childNodes.indexOf(refNode);
+	// FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
+	if (i > -1)
+	{
+		newNode.orphanize();
+		newNode.inflate();
+		this.childNodes.splice(i, 0, newNode);
+		newNode.parentNode = this;
+		this.resetLast();
+	}
+}
+ExpoDOM.prototype.removeChild = function(child)
+{
+	// FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
+	var i = this.childNodes.indexOf(child);
+	if (i > -1)
+	{
+		this.childNodes.splice(i, 1);
+		delete child.parentNode;
+		// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
+		RN.UIManager.manageChildren(this.tag, [], [], [], [], [i]);
+	}
+	this.resetLast();
+}
+ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
+{
+	newChild.orphanize();
+	newChild.inflate();
+	// FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
+	var i = this.childNodes.indexOf(oldChild);
+	if (i > -1)
+	{
+		this.childNodes[i] = newChild;
+		newChild.parentNode = this;
+		delete oldChild.parentNode;
+		// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
+		RN.UIManager.manageChildren(this.tag, [], [], [newChild.tag], [i], [i]);
+	}
+	this.resetLast();
+}
+
+// Java: Integer.MAX_VALUE/2, adjusted so that nextReactTag%10 == 3, to step around special RN values
+var nextReactTag = (2<<30)-1;
+function allocateTag() {
+	var tag = nextReactTag;
+	1 === tag % 10 && (tag += 2);
+	nextReactTag = tag + 2;
+	return tag;
+}
+
+ExpoDOM.prototype.createTextNode(text)
+{
+	var child = new ExpoDOM(allocateTag());
+	child.name = 'RCTRawText';
+	child.attrs = {text: text};
+	child.root = this.tag;
+	// RN.UIManager.createView(child.tag, 'RCTRawText', this.tag, {text: text});
+	return child;
+}
+ExpoDOM.prototype.createElement(name)
+{
+	var child = new ExpoDOM(allocateTag());
+	child.name = name;
+	child.attrs = {};
+	child.root = this.tag;
+	// RN.UIManager.createView(child.tag, name, this.tag, {});
+	return child;
+}
+ExpoDOM.prototype.setAttribute(key, value)
+{
+	this.attrs[key] = value;
+	if (this.inflated())
+	{
+		RN.UIManager.updateView(this.tag, this.name, this.attrs);
+	}
+}
+ExpoDOM.prototype.removeAttribute(key)
+{
+	delete this.attrs[key];
+	if (this.inflated())
+	{
+		RN.UIManager.updateView(this.tag, this.name, this.attrs);
+	}
+}
+ExpoDOM.prototype.replaceData(_, _, text)
+{
+	this.attrs.text = text;
+	if (this.inflated())
+	{
+		RN.UIManager.updateView(this.tag, this.name, this.attrs);
+	}
+}
+
 
 function beginnerProgram(impl)
 {

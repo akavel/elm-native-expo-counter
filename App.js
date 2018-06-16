@@ -21,6 +21,8 @@ const Elm = require('./elm');
 
 import { NativeModules } from 'react-native'
 
+console.log(`...RN is: ${Object.keys(require('react-native')).sort()}`);
+
 console.log("...Hijacking RN app...");
 import { AppRegistry } from 'react-native';
 // console.log(`....AR is: ${Object.keys(AppRegistry)}`);
