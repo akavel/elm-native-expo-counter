@@ -1898,6 +1898,7 @@ function expoSetup(impl, object, moduleName, flagChecker)
 	object['run'] = function(appParams, flags)
 	{
 		var fakeDOM = new ExpoDOM(appParams.rootTag);
+		fakeDOM.inflated = true;
 		localDoc = fakeDOM;
 		return _elm_lang$core$Native_Platform.initialize(
 			flagChecker(impl.init, flags, fakeDOM),
@@ -1952,6 +1953,7 @@ ExpoDOM.prototype.createDocumentFragment = function()
 }
 ExpoDOM.prototype.appendChild = function(child)
 {
+	this.inflate();
 	if (child.tag === 'FRAG')
 	{
 		// TODO(akavel): optimize this
@@ -2031,7 +2033,9 @@ ExpoDOM.prototype.createTextNode = function(text)
 	child.attrs = {text: text};
 	child.root = this.tag;
 	// RN.UIManager.createView(child.tag, 'RCTRawText', this.tag, {text: text});
-	return child;
+	var wrapper = this.createElement('RCTText');
+	wrapper.appendChild(child);
+	return wrapper;
 }
 ExpoDOM.prototype.createElement = function(name)
 {
