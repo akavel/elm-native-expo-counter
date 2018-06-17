@@ -1963,7 +1963,7 @@ ExpoDOM.prototype.appendChild = function(child)
 	}
 	child.orphanize();
 	child.inflate();
-	RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length]);
+	RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length], []);
 	this.childNodes.push(child);
 	child.parentNode = this;
 	this.lastChild = child;
