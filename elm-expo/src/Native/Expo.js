@@ -1921,10 +1921,16 @@ function ExpoDOM(tag)
 
 ExpoDOM.prototype.inflate = function()
 {
-	if (!this.inflated)
+	if (this.parentNode && this.parentNode.inflated && !this.inflated)
 	{
 		RN.UIManager.createView(this.tag, this.name, this.root, this.attrs);
 		this.inflated = true;
+		for (var i = 0; i < this.childNodes.length; i++)
+		{
+			var child = this.childNodes[i];
+			child.inflate();
+			RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [i], []);
+		}
 	}
 }
 ExpoDOM.prototype.orphanize = function()
@@ -1965,7 +1971,10 @@ ExpoDOM.prototype.appendChild = function(child)
 	}
 	child.orphanize();
 	child.inflate();
-	RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length], []);
+	if (this.inflated)
+	{
+		RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length], []);
+	}
 	this.childNodes.push(child);
 	child.parentNode = this;
 	this.lastChild = child;
@@ -1995,8 +2004,11 @@ ExpoDOM.prototype.removeChild = function(child)
 	{
 		this.childNodes.splice(i, 1);
 		delete child.parentNode;
-		// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
-		RN.UIManager.manageChildren(this.tag, [], [], [], [], [i]);
+		if (this.inflated)
+		{
+			// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
+			RN.UIManager.manageChildren(this.tag, [], [], [], [], [i]);
+		}
 	}
 	this.resetLast();
 }
@@ -2011,13 +2023,17 @@ ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
 		this.childNodes[i] = newChild;
 		newChild.parentNode = this;
 		delete oldChild.parentNode;
-		// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
-		RN.UIManager.manageChildren(this.tag, [], [], [newChild.tag], [i], [i]);
+		if (this.inflated)
+		{
+			// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
+			RN.UIManager.manageChildren(this.tag, [], [], [newChild.tag], [i], [i]);
+		}
 	}
 	this.resetLast();
 }
 
 // Java: Integer.MAX_VALUE/2, adjusted so that nextReactTag%10 == 3, to step around special RN values
+// Other than that, the code is copied from RN source.
 var nextReactTag = (2<<30)-1;
 function allocateTag() {
 	var tag = nextReactTag;
@@ -2033,6 +2049,7 @@ ExpoDOM.prototype.createTextNode = function(text)
 	child.attrs = {text: text};
 	child.root = this.tag;
 	// RN.UIManager.createView(child.tag, 'RCTRawText', this.tag, {text: text});
+	// Without wrapper, I was getting error like in https://github.com/facebook/react-native/issues/13243
 	var wrapper = this.createElement('RCTText');
 	wrapper.appendChild(child);
 	return wrapper;
@@ -2049,7 +2066,7 @@ ExpoDOM.prototype.createElement = function(name)
 ExpoDOM.prototype.setAttribute = function(key, value)
 {
 	this.attrs[key] = value;
-	if (this.inflated())
+	if (this.inflated)
 	{
 		RN.UIManager.updateView(this.tag, this.name, this.attrs);
 	}
@@ -2057,7 +2074,7 @@ ExpoDOM.prototype.setAttribute = function(key, value)
 ExpoDOM.prototype.removeAttribute = function(key)
 {
 	delete this.attrs[key];
-	if (this.inflated())
+	if (this.inflated)
 	{
 		RN.UIManager.updateView(this.tag, this.name, this.attrs);
 	}
@@ -2065,7 +2082,7 @@ ExpoDOM.prototype.removeAttribute = function(key)
 ExpoDOM.prototype.replaceData = function(_1, _2, text)
 {
 	this.attrs.text = text;
-	if (this.inflated())
+	if (this.inflated)
 	{
 		RN.UIManager.updateView(this.tag, this.name, this.attrs);
 	}
