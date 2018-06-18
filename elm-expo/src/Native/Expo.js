@@ -1977,7 +1977,7 @@ ExpoDOM.prototype.appendChild = function(child)
 	child.inflate();
 	if (this.inflated)
 	{
-		RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length], []);
+		RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length-1], []);
 	}
 }
 ExpoDOM.prototype.insertBefore = function(newNode, refNode)
