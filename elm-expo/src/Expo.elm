@@ -47,3 +47,4 @@ program :
     -> Program Never model msg
 program =
     Native.Expo.program
+// TODO(akavel): program = VirtualDom.program
