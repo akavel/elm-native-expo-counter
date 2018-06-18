@@ -1935,6 +1935,7 @@ ExpoDOM.prototype.inflate = function()
 }
 ExpoDOM.prototype.orphanize = function()
 {
+	// TODO(akavel): just: `if (this.parentNode)` ?
 	if (this.inflated && this.parentNode)
 	{
 		this.parentNode.removeChild(this);
@@ -1970,14 +1971,14 @@ ExpoDOM.prototype.appendChild = function(child)
 		return;
 	}
 	child.orphanize();
+	this.childNodes.push(child);
+	child.parentNode = this;
+	this.lastChild = child;
 	child.inflate();
 	if (this.inflated)
 	{
 		RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length], []);
 	}
-	this.childNodes.push(child);
-	child.parentNode = this;
-	this.lastChild = child;
 }
 ExpoDOM.prototype.insertBefore = function(newNode, refNode)
 {
@@ -1990,10 +1991,14 @@ ExpoDOM.prototype.insertBefore = function(newNode, refNode)
 	if (i > -1)
 	{
 		newNode.orphanize();
-		newNode.inflate();
 		this.childNodes.splice(i, 0, newNode);
 		newNode.parentNode = this;
 		this.resetLast();
+		newNode.inflate();
+		if (this.inflated)
+		{
+			RN.UIManager.manageChildren(this.tag, [], [], [newNode.tag], [i], []);
+		}
 	}
 }
 ExpoDOM.prototype.removeChild = function(child)
@@ -2014,22 +2019,25 @@ ExpoDOM.prototype.removeChild = function(child)
 }
 ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
 {
-	newChild.orphanize();
-	newChild.inflate();
+	// newChild.orphanize();
 	// FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
 	var i = this.childNodes.indexOf(oldChild);
 	if (i > -1)
 	{
-		this.childNodes[i] = newChild;
-		newChild.parentNode = this;
-		delete oldChild.parentNode;
-		if (this.inflated)
-		{
-			// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
-			RN.UIManager.manageChildren(this.tag, [], [], [newChild.tag], [i], [i]);
-		}
+		// TODO(akavel): optimize
+		this.insertBefore(newChild, oldChild);
+		this.removeChild(oldChild);
+		// this.childNodes[i] = newChild;
+		// newChild.parentNode = this;
+		// delete oldChild.parentNode;
+		// newChild.inflate();
+		// if (this.inflated)
+		// {
+		// 	// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
+		// 	RN.UIManager.manageChildren(this.tag, [], [], [newChild.tag], [i], [i]);
+		// }
 	}
-	this.resetLast();
+	// this.resetLast();
 }
 
 // Java: Integer.MAX_VALUE/2, adjusted so that nextReactTag%10 == 3, to step around special RN values
