@@ -42,6 +42,7 @@ console.log(`...RN is: ${Object.keys(require('react-native')).sort()}`);
 
 console.log("...Hijacking RN app...");
 import { AppRegistry } from 'react-native';
+import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge.js';
 // console.log(`....AR is: ${Object.keys(AppRegistry)}`);
 // console.log(`....AR.rR is: ${AppRegistry.registerRunnable}`);
 var oldrc = AppRegistry.registerComponent;
@@ -50,6 +51,9 @@ AppRegistry.registerComponent = (a,b,c) => {
   if (a === 'main') {
     var newmain = (appParameters) => {
       console.log('...hijack called!...');
+      var rcevt = BatchedBridge.getCallableModule('RCTEventEmitter');
+      console.log(`...BB.gCM RCTEE = ${Object.keys(rcevt).sort()}`);
+      console.log(`...BB.gCM RCTEE = ${JSON.stringify(rcevt)}`);
       Elm.Main.run(appParameters);
       NativeModules.DialogManagerAndroid.showAlert(
         {title: 'hi raw'},
