@@ -1925,11 +1925,18 @@ ExpoDOM.prototype.inflate = function()
 	{
 		RN.UIManager.createView(this.tag, this.name, this.root, this.attrs);
 		this.inflated = true;
+		var childTags = [];
 		for (var i = 0; i < this.childNodes.length; i++)
 		{
 			var child = this.childNodes[i];
 			child.inflate();
-			RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [i], []);
+			childTags.push(child.tag);
+			// RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [i], []);
+		}
+		// NOTE(akavel): optimization attempt; if this makes problems, try reverting to manageChildren above
+		if (childTags.length > 0)
+		{
+			RN.UIManager.setChildren(this.tag, childTags);
 		}
 	}
 }
