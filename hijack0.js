@@ -74,11 +74,14 @@ ExpoDocument.prototype.createElement = function(name)
 
 // Java: Integer.MAX_VALUE/2, adjusted so that nextReactTag%10 == 3, to step around special RN values
 // Other than that, the code is copied from RN source.
-var nextReactTag = (2<<30)-1;
+if (typeof elmRN_nextReactTag === 'undefined') {
+  // NOTE: a global variable, to hopefully better support dynamic/hot reloading of Expo & RN during development
+  elmRN_nextReactTag = (2<<30)-1;
+}
 function allocateTag() {
-  var tag = nextReactTag;
+  var tag = elmRN_nextReactTag;
   1 === tag % 10 && (tag += 2);
-  nextReactTag = tag + 2;
+  elmRN_nextReactTag = tag + 2;
   return tag;
 }
 
