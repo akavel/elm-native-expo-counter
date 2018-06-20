@@ -1509,6 +1509,21 @@ function crash(errorMessage, domNode)
 
 function normalSetup(impl, object, moduleName, flagChecker)
 {
+	// FIXME(akavel): delete this
+	object['run'] = function(appParams, flags)
+	{
+		var fakeDOM = new ExpoDOM(appParams.rootTag);
+		fakeDOM.inflated = true;
+		fakeDOM.root = appParams.rootTag;
+		// localDoc = fakeDOM;
+		return _elm_lang$core$Native_Platform.initialize(
+			flagChecker(impl.init, flags, fakeDOM),
+			impl.update,
+			impl.subscriptions,
+			normalRenderer(fakeDOM, impl.view)
+		);
+	};
+
 	object['embed'] = function embed(node, flags)
 	{
 		while (node.lastChild)
@@ -1883,37 +1898,18 @@ function makeProgram(flagChecker)
 			return function(object, moduleName, debugMetadata)
 			{
 				var checker = flagChecker(flagDecoder, moduleName);
-				expoSetup(impl, object, moduleName, checker);
 				// TODO(akavel): can we have debug somehow enabled?
-				// if (typeof debugMetadata === 'undefined')
-				// {
-				// 	normalSetup(impl, object, moduleName, checker);
-				// }
-				// else
-				// {
-				// 	debugSetup(A2(debugWrap, debugMetadata, impl), object, moduleName, checker);
-				// }
+				if (typeof debugMetadata === 'undefined')
+				{
+					normalSetup(impl, object, moduleName, checker);
+				}
+				else
+				{
+					debugSetup(A2(debugWrap, debugMetadata, impl), object, moduleName, checker);
+				}
 			};
 		};
 	});
-}
-
-
-function expoSetup(impl, object, moduleName, flagChecker)
-{
-	object['run'] = function(appParams, flags)
-	{
-		var fakeDOM = new ExpoDOM(appParams.rootTag);
-		fakeDOM.inflated = true;
-		fakeDOM.root = appParams.rootTag;
-		// localDoc = fakeDOM;
-		return _elm_lang$core$Native_Platform.initialize(
-			flagChecker(impl.init, flags, fakeDOM),
-			impl.update,
-			impl.subscriptions,
-			normalRenderer(fakeDOM, impl.view)
-		);
-	};
 }
 
 
@@ -2076,20 +2072,6 @@ ExpoDOM.prototype.replaceData = function(_1, _2, text)
 	}
 }
 
-
-function beginnerProgram(impl)
-{
-	return function(flagDecoder)
-	{
-		return function(object, moduleName)
-		{
-			object['run'] = function(appParameters)
-			{
-				console.log("...hello in beginnerProgram!..." + appParameters.rootTag);
-			}
-		}
-	}
-}
 
 return {
 	// node: node,
