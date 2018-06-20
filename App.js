@@ -34,7 +34,7 @@ MessageQueue.spy(info => {
   }
 });
 
-var elmrn = require('./hijack0');
+var elmrn = require('./elm-rn-bridge');
 elmrn.prepare();
 const Elm = require('./elm');
 elmrn.bridge(Elm.Main);
