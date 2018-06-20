@@ -38,7 +38,9 @@ MessageQueue.spy(info => {
 var elmrn = require('./hijack0');
 elmrn.prepare();
 const Elm = require('./elm');
+elmrn.bridge(Elm.Main);
 
+/*
 import { NativeModules } from 'react-native'
 
 // console.log(`...RN is: ${Object.keys(require('react-native')).sort()}`);
@@ -71,3 +73,6 @@ AppRegistry.registerComponent = (a,b,c) => {
   return oldrc(a,b,c);
 };
 console.log('...attempted hijack end');
+*/
+console.log('...app.js end...');
+

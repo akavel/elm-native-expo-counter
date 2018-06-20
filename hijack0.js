@@ -38,8 +38,8 @@ function bridge(elmMainModule)
       elmMainModule.embed(fakeDOM);
     };
     // TODO(akavel): choice below seems to depend on RN version? or what?
-    // return AppRegistry.registerRunnable(a, {run: newmain});
-    return AppRegistry.registerRunnable(a, newmain);
+    // return AppRegistry.registerRunnable(appKey, {run: main});
+    return AppRegistry.registerRunnable(appKey, main);
   };
 }
 
