@@ -42,7 +42,7 @@ function bridge(elmMainModule)
     var main = function(appParameters)
     {
       var fakeDOM = new ExpoDOM(appParameters.rootTag);
-      fakeDOM.inflated = true;
+      fakeDOM._inflated = true;
       // TODO(akavel): will this work?
       // TODO(akavel): split DOM node functionalities from DOM document functionalities
       global.document = fakeDOM;
@@ -54,46 +54,50 @@ function bridge(elmMainModule)
   };
 }
 
+var RN = require('react-native');
 
 // TODO(akavel): make sure I'm not shooting myself in the foot somehow as a JS newb :/
 function ExpoDOM(tag)
 {
-  this.tag = tag;
+  // _tag is the node ID in React Native system (passed to createView(), etc.)
+  this._tag = tag;
+  // NOTE(akavel): the following are public properties, part of DOM specification
   this.childNodes = [];
+  this.lastChild = null;
 }
 
 // TODO(akavel): makeStepper(), setTimeout(), applyEvents()
 
-ExpoDOM.prototype.inflate = function()
+ExpoDOM.prototype._inflate = function()
 {
-  if (this.parentNode && this.parentNode.inflated && !this.inflated)
+  if (this.parentNode && this.parentNode._inflated && !this._inflated)
   {
-    RN.UIManager.createView(this.tag, this.name, this.root, this.attrs);
-    this.inflated = true;
+    RN.UIManager.createView(this._tag, this.name, this.root, this.attrs);
+    this._inflated = true;
     var childTags = [];
     for (var i = 0; i < this.childNodes.length; i++)
     {
       var child = this.childNodes[i];
-      child.inflate();
-      childTags.push(child.tag);
-      // RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [i], []);
+      child._inflate();
+      childTags.push(child._tag);
+      // RN.UIManager.manageChildren(this._tag, [], [], [child._tag], [i], []);
     }
     // NOTE(akavel): optimization attempt; if this makes problems, try reverting to manageChildren above
     if (childTags.length > 0)
     {
-      RN.UIManager.setChildren(this.tag, childTags);
+      RN.UIManager.setChildren(this._tag, childTags);
     }
   }
 }
-ExpoDOM.prototype.orphanize = function()
+ExpoDOM.prototype._orphanize = function()
 {
   // TODO(akavel): just: `if (this.parentNode)` ?
-  if (this.inflated && this.parentNode)
+  if (this._inflated && this.parentNode)
   {
     this.parentNode.removeChild(this);
   }
 }
-ExpoDOM.prototype.resetLast = function()
+ExpoDOM.prototype._resetLast = function()
 {
   var n = this.childNodes.length;
   if (n > 0)
@@ -112,8 +116,8 @@ ExpoDOM.prototype.createDocumentFragment = function()
 }
 ExpoDOM.prototype.appendChild = function(child)
 {
-  this.inflate();
-  if (child.tag === 'FRAG')
+  this._inflate();
+  if (child._tag === 'FRAG')
   {
     // TODO(akavel): optimize this
     for (var i = 0; i < child.childNodes.length; i++)
@@ -122,14 +126,14 @@ ExpoDOM.prototype.appendChild = function(child)
     }
     return;
   }
-  child.orphanize();
+  child._orphanize();
   this.childNodes.push(child);
   child.parentNode = this;
   this.lastChild = child;
-  child.inflate();
-  if (this.inflated)
+  child._inflate();
+  if (this._inflated)
   {
-    RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length-1], []);
+    RN.UIManager.manageChildren(this._tag, [], [], [child._tag], [this.childNodes.length-1], []);
   }
 }
 ExpoDOM.prototype.insertBefore = function(newNode, refNode)
@@ -142,14 +146,14 @@ ExpoDOM.prototype.insertBefore = function(newNode, refNode)
   // FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
   if (i > -1)
   {
-    newNode.orphanize();
+    newNode._orphanize();
     this.childNodes.splice(i, 0, newNode);
     newNode.parentNode = this;
-    this.resetLast();
-    newNode.inflate();
-    if (this.inflated)
+    this._resetLast();
+    newNode._inflate();
+    if (this._inflated)
     {
-      RN.UIManager.manageChildren(this.tag, [], [], [newNode.tag], [i], []);
+      RN.UIManager.manageChildren(this._tag, [], [], [newNode._tag], [i], []);
     }
   }
 }
@@ -161,17 +165,17 @@ ExpoDOM.prototype.removeChild = function(child)
   {
     this.childNodes.splice(i, 1);
     delete child.parentNode;
-    if (this.inflated)
+    if (this._inflated)
     {
       // FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
-      RN.UIManager.manageChildren(this.tag, [], [], [], [], [i]);
+      RN.UIManager.manageChildren(this._tag, [], [], [], [], [i]);
     }
   }
-  this.resetLast();
+  this._resetLast();
 }
 ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
 {
-  // newChild.orphanize();
+  // newChild._orphanize();
   // FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
   var i = this.childNodes.indexOf(oldChild);
   if (i > -1)
@@ -182,14 +186,14 @@ ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
     // this.childNodes[i] = newChild;
     // newChild.parentNode = this;
     // delete oldChild.parentNode;
-    // newChild.inflate();
-    // if (this.inflated)
+    // newChild._inflate();
+    // if (this._inflated)
     // {
     // 	// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
-    // 	RN.UIManager.manageChildren(this.tag, [], [], [newChild.tag], [i], [i]);
+    // 	RN.UIManager.manageChildren(this._tag, [], [], [newChild._tag], [i], [i]);
     // }
   }
-  // this.resetLast();
+  // this._resetLast();
 }
 
 // Java: Integer.MAX_VALUE/2, adjusted so that nextReactTag%10 == 3, to step around special RN values
@@ -207,8 +211,8 @@ ExpoDOM.prototype.createTextNode = function(text)
   var child = new ExpoDOM(allocateTag());
   child.name = 'RCTRawText';
   child.attrs = {text: text};
-  child.root = this.tag;
-  // RN.UIManager.createView(child.tag, 'RCTRawText', this.tag, {text: text});
+  child.root = this._tag;
+  // RN.UIManager.createView(child._tag, 'RCTRawText', this._tag, {text: text});
   // Without wrapper, I was getting error like in https://github.com/facebook/react-native/issues/13243
   var wrapper = this.createElement('RCTText');
   wrapper.appendChild(child);
@@ -219,32 +223,32 @@ ExpoDOM.prototype.createElement = function(name)
   var child = new ExpoDOM(allocateTag());
   child.name = name;
   child.attrs = {};
-  child.root = this.tag;
-  // RN.UIManager.createView(child.tag, name, this.tag, {});
+  child.root = this._tag;
+  // RN.UIManager.createView(child._tag, name, this._tag, {});
   return child;
 }
 ExpoDOM.prototype.setAttribute = function(key, value)
 {
   this.attrs[key] = value;
-  if (this.inflated)
+  if (this._inflated)
   {
-    RN.UIManager.updateView(this.tag, this.name, this.attrs);
+    RN.UIManager.updateView(this._tag, this.name, this.attrs);
   }
 }
 ExpoDOM.prototype.removeAttribute = function(key)
 {
   delete this.attrs[key];
-  if (this.inflated)
+  if (this._inflated)
   {
-    RN.UIManager.updateView(this.tag, this.name, this.attrs);
+    RN.UIManager.updateView(this._tag, this.name, this.attrs);
   }
 }
 ExpoDOM.prototype.replaceData = function(_1, _2, text)
 {
   this.attrs.text = text;
-  if (this.inflated)
+  if (this._inflated)
   {
-    RN.UIManager.updateView(this.tag, this.name, this.attrs);
+    RN.UIManager.updateView(this._tag, this.name, this.attrs);
   }
 }
 
