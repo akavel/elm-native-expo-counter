@@ -3,6 +3,7 @@
 var RN = require('react-native');
 // FIXME(akavel): unify 'require' vs 'import', etc.; I'm a total JS noob
 import { AppRegistry } from 'react-native';
+import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge.js';
 
 function prepare()
 {
@@ -12,6 +13,11 @@ function prepare()
     throw ('Cannot create new Elm-RN bridge, global document is already set to: ' + document);
   }
   document = new ExpoDocument();
+
+  // bridgeEvents();
+  // var rcee = BatchedBridge.getCallableModule('RCTEventEmitter');
+  // // console.log(`...in prepare: BB -> rcee = ${typeof rcee}`);
+  // console.log(`...in prepare: BB -> rcee = ${Object.keys(rcee).sort()}`);
 }
 
 // bridge connects an Elm program to a React Native root element.
@@ -32,8 +38,15 @@ function bridge(elmMainModule)
       // Default behavior - run original registerComponent.
       return oldf(appKey, componentProvider, section);
     }
+    // Our new 'main' function will replace the one provided by RN.
     var main = function(appParameters)
     {
+      // var rcee = BatchedBridge.getCallableModule('RCTEventEmitter');
+      // console.log(`...BB -> rcee = ${Object.keys(rcee).sort()}`);
+      bridgeEvents();
+
+      // ExpoDOM exposes a DOM-like API to RN nodes/views. Here, we wrap the
+      // root RN node in ExpoDOM, and run the provided Elm.Main module on it.
       var fakeDOM = new ExpoDOM(appParameters.rootTag);
       fakeDOM._inflated = true;
       fakeDOM._root = appParameters.rootTag;
@@ -43,6 +56,41 @@ function bridge(elmMainModule)
     // return AppRegistry.registerRunnable(appKey, {run: main});
     return AppRegistry.registerRunnable(appKey, main);
   };
+}
+
+function bridgeEvents()
+{
+  console.log('...bridgeEvents init');
+  var oldemitter = BatchedBridge.getCallableModule('RCTEventEmitter');
+  // NOTE(akavel): It seems we must do a copy of object properties here, as
+  // otherwise a simple assignment of .receiveTouches didn't work (maybe the
+  // object is made immutable somehow?)
+  var emitter = {};
+  Object.keys(oldemitter).forEach(function(key) {
+    emitter[key] = oldemitter[key];
+  });
+  emitter.receiveTouches = function()
+  {
+    console.log(`...receiveTouches: handlers=${eventHandlers.receiveTouches.length} args=${JSON.stringify(arguments)}`);
+    // TODO(akavel): call all, or only first?
+    if (eventHandlers.receiveTouches.length > 0)
+    {
+      eventHandlers.receiveTouches[0].apply(null, arguments);
+    }
+    // for (var i = 0; i < eventHandlers.receiveTouches.length; i++)
+    // {
+    //   eventHandlers.receiveTouches[i].apply(null, arguments);
+    // }
+  };
+  BatchedBridge.registerCallableModule('RCTEventEmitter', emitter);
+  // console.log(`...in bridgeEvents: BB -> emitter = ${Object.keys(emitter).sort()}`);
+  // console.log(`...emitter.rt: ${emitter.receiveTouches}`);
+  // console.log(`...get again: ${BatchedBridge.getCallableModule('RCTEventEmitter').receiveTouches}`);
+}
+
+var eventHandlers = {
+  // receiveEvents: [],
+  receiveTouches: [],
 }
 
 function ExpoDocument()
