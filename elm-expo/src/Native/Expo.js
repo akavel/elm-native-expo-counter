@@ -10,6 +10,12 @@ var EVENT_KEY = 'EVENT';
 var ATTR_KEY = 'ATTR';
 var ATTR_NS_KEY = 'ATTR_NS';
 
+if (typeof document !== 'undefined') {
+	console.log(`...in Elm, document=${document}`);
+} else {
+	console.log('...in Elm, no document!');
+}
+
 var localDoc = typeof document !== 'undefined' ? document : {};
 
 

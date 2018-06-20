@@ -34,6 +34,7 @@ MessageQueue.spy(info => {
   }
 });
 
+document = 'Hello doc!';
 const Elm = require('./elm');
 
 import { NativeModules } from 'react-native'
