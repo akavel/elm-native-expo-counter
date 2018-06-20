@@ -1905,7 +1905,8 @@ function expoSetup(impl, object, moduleName, flagChecker)
 	{
 		var fakeDOM = new ExpoDOM(appParams.rootTag);
 		fakeDOM.inflated = true;
-		localDoc = fakeDOM;
+		fakeDOM.root = appParams.rootTag;
+		// localDoc = fakeDOM;
 		return _elm_lang$core$Native_Platform.initialize(
 			flagChecker(impl.init, flags, fakeDOM),
 			impl.update,
@@ -1929,6 +1930,7 @@ ExpoDOM.prototype.inflate = function()
 {
 	if (this.parentNode && this.parentNode.inflated && !this.inflated)
 	{
+		this.root = this.parentNode.root;
 		RN.UIManager.createView(this.tag, this.name, this.root, this.attrs);
 		this.inflated = true;
 		var childTags = [];
@@ -1967,10 +1969,6 @@ ExpoDOM.prototype.resetLast = function()
 	}
 }
 
-ExpoDOM.prototype.createDocumentFragment = function()
-{
-	return new ExpoDOM('FRAG');
-}
 ExpoDOM.prototype.appendChild = function(child)
 {
 	this.inflate();
@@ -2053,37 +2051,6 @@ ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
 	// this.resetLast();
 }
 
-// Java: Integer.MAX_VALUE/2, adjusted so that nextReactTag%10 == 3, to step around special RN values
-// Other than that, the code is copied from RN source.
-var nextReactTag = (2<<30)-1;
-function allocateTag() {
-	var tag = nextReactTag;
-	1 === tag % 10 && (tag += 2);
-	nextReactTag = tag + 2;
-	return tag;
-}
-
-ExpoDOM.prototype.createTextNode = function(text)
-{
-	var child = new ExpoDOM(allocateTag());
-	child.name = 'RCTRawText';
-	child.attrs = {text: text};
-	child.root = this.tag;
-	// RN.UIManager.createView(child.tag, 'RCTRawText', this.tag, {text: text});
-	// Without wrapper, I was getting error like in https://github.com/facebook/react-native/issues/13243
-	var wrapper = this.createElement('RCTText');
-	wrapper.appendChild(child);
-	return wrapper;
-}
-ExpoDOM.prototype.createElement = function(name)
-{
-	var child = new ExpoDOM(allocateTag());
-	child.name = name;
-	child.attrs = {};
-	child.root = this.tag;
-	// RN.UIManager.createView(child.tag, name, this.tag, {});
-	return child;
-}
 ExpoDOM.prototype.setAttribute = function(key, value)
 {
 	this.attrs[key] = value;
