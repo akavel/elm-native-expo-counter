@@ -4,8 +4,8 @@ MessageQueue.spy(info => {
   var exclude = [
     // 'RCTDeviceEventEmitter.emit',
     'Networking.sendRequest',
-    // 'Timing.createTimer',
-    // 'JSTimers.callTimers',
+    'Timing.createTimer',
+    'JSTimers.callTimers',
     'WebSocketModule.connect',
   ];
   if (!exclude.includes(name)) {
@@ -34,12 +34,14 @@ MessageQueue.spy(info => {
   }
 });
 
-document = 'Hello doc!';
+// document = 'Hello doc!';
+var elmrn = require('./hijack0');
+elmrn.bridge();
 const Elm = require('./elm');
 
 import { NativeModules } from 'react-native'
 
-console.log(`...RN is: ${Object.keys(require('react-native')).sort()}`);
+// console.log(`...RN is: ${Object.keys(require('react-native')).sort()}`);
 
 console.log("...Hijacking RN app...");
 import { AppRegistry } from 'react-native';
@@ -53,8 +55,8 @@ AppRegistry.registerComponent = (a,b,c) => {
     var newmain = (appParameters) => {
       console.log('...hijack called!...');
       var rcevt = BatchedBridge.getCallableModule('RCTEventEmitter');
-      console.log(`...BB.gCM RCTEE = ${Object.keys(rcevt).sort()}`);
-      console.log(`...BB.gCM RCTEE = ${JSON.stringify(rcevt)}`);
+      // console.log(`...BB.gCM RCTEE = ${Object.keys(rcevt).sort()}`);
+      // console.log(`...BB.gCM RCTEE = ${JSON.stringify(rcevt)}`);
       Elm.Main.run(appParameters);
       NativeModules.DialogManagerAndroid.showAlert(
         {title: 'hi raw'},
