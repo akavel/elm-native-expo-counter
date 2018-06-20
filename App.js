@@ -36,7 +36,7 @@ MessageQueue.spy(info => {
 
 // document = 'Hello doc!';
 var elmrn = require('./hijack0');
-elmrn.bridge();
+elmrn.prepare();
 const Elm = require('./elm');
 
 import { NativeModules } from 'react-native'

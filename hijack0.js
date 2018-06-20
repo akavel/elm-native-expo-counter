@@ -1,14 +1,46 @@
 var RN = require('react-native');
+// FIXME(akavel): unify 'require' vs 'import', etc.; I'm a total JS noob
+import { AppRegistry } from 'react-native';
 
-function bridge()
+function prepare()
 {
   if (typeof document !== 'undefined')
   {
     // TODO(akavel): add support for multiple docs; if 'Object' and document.constructor == ExpoDOM, then should be OK
     throw ('Cannot create new Elm-RN bridge, global document is already set to: ' + document);
   }
-  // document = 'Hello from bridge!';
   document = new ExpoDocument();
+}
+
+// bridge connects an Elm program to a React Native root element.
+// WARNING: Bridge works by exploiting low level internal mechanisms of both
+// Elm and React Native / Expo. It is thus potentially highly fragile and
+// dependant on exact versions of Elm, RN and Expo. Currently, bridge is tested
+// to work with: Elm 0.18, RN 0.55, Expo [TODO].[TODO].
+function bridge(elmMainModule)
+{
+  // Intercept all calls to AppRegistry.registerComponent(). If a caller (RN
+  // runtime) tries to register a 'main' function, inject our own function
+  // instead.
+  var oldf = AppRegistry.registerComponent;
+  AppRegistry.registerComponent = function(appKey, componentProvider, section)
+  {
+    if (appKey !== 'main')
+    {
+      // Default behavior - run original registerComponent.
+      return oldf(appKey, componentProvider, section);
+    }
+    var main = function(appParameters)
+    {
+      var fakeDOM = new ExpoDOM(appParameters.rootTag);
+      fakeDOM.inflated = true;
+      fakeDOM.root = appParameters.rootTag;
+      elmMainModule.embed(fakeDOM);
+    };
+    // TODO(akavel): choice below seems to depend on RN version? or what?
+    // return AppRegistry.registerRunnable(a, {run: newmain});
+    return AppRegistry.registerRunnable(a, newmain);
+  };
 }
 
 function ExpoDocument()
@@ -21,9 +53,9 @@ ExpoDocument.prototype.createDocumentFragment = function()
 ExpoDocument.prototype.createTextNode = function(text)
 {
   var child = new ExpoDOM(allocateTag());
+  // TODO(akavel): prepend below fields with '_'
   child.name = 'RCTRawText';
   child.attrs = {text: text};
-  // child.root = this.tag;
   // RN.UIManager.createView(child.tag, 'RCTRawText', this.tag, {text: text});
   // Without wrapper, I was getting error like in https://github.com/facebook/react-native/issues/13243
   var wrapper = this.createElement('RCTText');
@@ -62,6 +94,7 @@ ExpoDOM.prototype.inflate = function()
 {
   if (this.parentNode && this.parentNode.inflated && !this.inflated)
   {
+    // TODO(akavel): prepend below field with '_'
     this.root = this.parentNode.root;
     RN.UIManager.createView(this.tag, this.name, this.root, this.attrs);
     this.inflated = true;
@@ -210,5 +243,6 @@ ExpoDOM.prototype.replaceData = function(_1, _2, text)
 
 
 module.exports = {
+  prepare: prepare,
   bridge: bridge,
 };
