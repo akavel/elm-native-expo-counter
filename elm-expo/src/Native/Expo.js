@@ -1,20 +1,9 @@
-var _user$project$Native_Expo = (function () {
-
-var ReactNative = require('react-native');
-var RN = ReactNative;
-var React = require('react');
-// var toArray = _elm_lang$core$Native_List.toArray;
+var _user$project$Native_Expo = function () {
 
 var STYLE_KEY = 'STYLE';
 var EVENT_KEY = 'EVENT';
 var ATTR_KEY = 'ATTR';
 var ATTR_NS_KEY = 'ATTR_NS';
-
-if (typeof document !== 'undefined') {
-	console.log(`...in Elm, document=${document}`);
-} else {
-	console.log('...in Elm, no document!');
-}
 
 var localDoc = typeof document !== 'undefined' ? document : {};
 
@@ -396,7 +385,6 @@ function applyFacts(domNode, eventNode, facts)
 				applyAttrsNS(domNode, value);
 				break;
 
-			// TODO(akavel): can this ever happen? if yes, how?
 			case 'value':
 				if (domNode[key] !== value)
 				{
@@ -1486,7 +1474,6 @@ function checkYesFlags(flagDecoder, moduleName)
 	};
 }
 
-// FIXME(akavel): override (domNode is appParameters)
 function crash(errorMessage, domNode)
 {
 	if (domNode)
@@ -1506,21 +1493,6 @@ function crash(errorMessage, domNode)
 
 function normalSetup(impl, object, moduleName, flagChecker)
 {
-	// FIXME(akavel): delete this
-	object['run'] = function(appParams, flags)
-	{
-		var fakeDOM = new ExpoDOM(appParams.rootTag);
-		fakeDOM.inflated = true;
-		fakeDOM.root = appParams.rootTag;
-		// localDoc = fakeDOM;
-		return _elm_lang$core$Native_Platform.initialize(
-			flagChecker(impl.init, flags, fakeDOM),
-			impl.update,
-			impl.subscriptions,
-			normalRenderer(fakeDOM, impl.view)
-		);
-	};
-
 	object['embed'] = function embed(node, flags)
 	{
 		while (node.lastChild)
@@ -1909,5 +1881,5 @@ return {
 	// beginnerProgram: beginnerProgram
 };
 
-}());
+}();
 
