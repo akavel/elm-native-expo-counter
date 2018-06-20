@@ -1399,11 +1399,9 @@ function applyPatchReorderEndInsertsHelp(endInserts, patch)
 var program = makeProgram(checkNoFlags);
 var programWithFlags = makeProgram(checkYesFlags);
 
-/*
 function makeProgram(flagChecker)
 {
-	// TODO(akavel): can we have debug somehow enabled?
-	// return F2(function(debugWrap, impl)
+	console.log('...makeProgram new!...');
 	return (function(impl)
 	{
 		return function(flagDecoder)
@@ -1412,19 +1410,18 @@ function makeProgram(flagChecker)
 			{
 				var checker = flagChecker(flagDecoder, moduleName);
 				// TODO(akavel): can we have debug somehow enabled?
-				// if (typeof debugMetadata === 'undefined')
-				// {
+				if (typeof debugMetadata === 'undefined')
+				{
 					normalSetup(impl, object, moduleName, checker);
-				// }
-				// else
-				// {
-				// 	debugSetup(A2(debugWrap, debugMetadata, impl), object, moduleName, checker);
-				// }
+				}
+				else
+				{
+					debugSetup(A2(debugWrap, debugMetadata, impl), object, moduleName, checker);
+				}
 			};
 		};
 	});
 }
-*/
 
 function staticProgram(vNode)
 {
@@ -1884,193 +1881,6 @@ var mostEvents = [
 
 var allEvents = mostEvents.concat('wheel', 'scroll');
 
-
-//////// extra ////////
-
-
-function makeProgram(flagChecker)
-{
-	console.log('...makeProgram!...');
-	return (function(impl)
-	{
-		return function(flagDecoder)
-		{
-			return function(object, moduleName, debugMetadata)
-			{
-				var checker = flagChecker(flagDecoder, moduleName);
-				// TODO(akavel): can we have debug somehow enabled?
-				if (typeof debugMetadata === 'undefined')
-				{
-					normalSetup(impl, object, moduleName, checker);
-				}
-				else
-				{
-					debugSetup(A2(debugWrap, debugMetadata, impl), object, moduleName, checker);
-				}
-			};
-		};
-	});
-}
-
-
-// TODO(akavel): make sure I'm not shooting myself in the foot somehow as a JS newb :/
-function ExpoDOM(tag)
-{
-	this.tag = tag;
-	this.childNodes = [];
-}
-
-// TODO(akavel): makeStepper(), setTimeout(), applyEvents()
-
-ExpoDOM.prototype.inflate = function()
-{
-	if (this.parentNode && this.parentNode.inflated && !this.inflated)
-	{
-		this.root = this.parentNode.root;
-		RN.UIManager.createView(this.tag, this.name, this.root, this.attrs);
-		this.inflated = true;
-		var childTags = [];
-		for (var i = 0; i < this.childNodes.length; i++)
-		{
-			var child = this.childNodes[i];
-			child.inflate();
-			childTags.push(child.tag);
-			// RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [i], []);
-		}
-		// NOTE(akavel): optimization attempt; if this makes problems, try reverting to manageChildren above
-		if (childTags.length > 0)
-		{
-			RN.UIManager.setChildren(this.tag, childTags);
-		}
-	}
-}
-ExpoDOM.prototype.orphanize = function()
-{
-	// TODO(akavel): just: `if (this.parentNode)` ?
-	if (this.inflated && this.parentNode)
-	{
-		this.parentNode.removeChild(this);
-	}
-}
-ExpoDOM.prototype.resetLast = function()
-{
-	var n = this.childNodes.length;
-	if (n > 0)
-	{
-		this.lastChild = this.childNodes[n-1];
-	}
-	else
-	{
-		delete this.lastChild;
-	}
-}
-
-ExpoDOM.prototype.appendChild = function(child)
-{
-	this.inflate();
-	if (child.tag === 'FRAG')
-	{
-		// TODO(akavel): optimize this
-		for (var i = 0; i < child.childNodes.length; i++)
-		{
-			this.appendChild(child.childNodes[i]);
-		}
-		return;
-	}
-	child.orphanize();
-	this.childNodes.push(child);
-	child.parentNode = this;
-	this.lastChild = child;
-	child.inflate();
-	if (this.inflated)
-	{
-		RN.UIManager.manageChildren(this.tag, [], [], [child.tag], [this.childNodes.length-1], []);
-	}
-}
-ExpoDOM.prototype.insertBefore = function(newNode, refNode)
-{
-	if (refNode === null)
-	{
-		return this.appendNode(newNode);
-	}
-	var i = this.childNodes.indexOf(refNode);
-	// FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
-	if (i > -1)
-	{
-		newNode.orphanize();
-		this.childNodes.splice(i, 0, newNode);
-		newNode.parentNode = this;
-		this.resetLast();
-		newNode.inflate();
-		if (this.inflated)
-		{
-			RN.UIManager.manageChildren(this.tag, [], [], [newNode.tag], [i], []);
-		}
-	}
-}
-ExpoDOM.prototype.removeChild = function(child)
-{
-	// FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
-	var i = this.childNodes.indexOf(child);
-	if (i > -1)
-	{
-		this.childNodes.splice(i, 1);
-		delete child.parentNode;
-		if (this.inflated)
-		{
-			// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
-			RN.UIManager.manageChildren(this.tag, [], [], [], [], [i]);
-		}
-	}
-	this.resetLast();
-}
-ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
-{
-	// newChild.orphanize();
-	// FIXME(akavel): verify this behaves OK if child is not on the list (and also if it is on the list)
-	var i = this.childNodes.indexOf(oldChild);
-	if (i > -1)
-	{
-		// TODO(akavel): optimize
-		this.insertBefore(newChild, oldChild);
-		this.removeChild(oldChild);
-		// this.childNodes[i] = newChild;
-		// newChild.parentNode = this;
-		// delete oldChild.parentNode;
-		// newChild.inflate();
-		// if (this.inflated)
-		// {
-		// 	// FIXME(akavel): verify below does deallocate when needed, and doesn't when not needed...
-		// 	RN.UIManager.manageChildren(this.tag, [], [], [newChild.tag], [i], [i]);
-		// }
-	}
-	// this.resetLast();
-}
-
-ExpoDOM.prototype.setAttribute = function(key, value)
-{
-	this.attrs[key] = value;
-	if (this.inflated)
-	{
-		RN.UIManager.updateView(this.tag, this.name, this.attrs);
-	}
-}
-ExpoDOM.prototype.removeAttribute = function(key)
-{
-	delete this.attrs[key];
-	if (this.inflated)
-	{
-		RN.UIManager.updateView(this.tag, this.name, this.attrs);
-	}
-}
-ExpoDOM.prototype.replaceData = function(_1, _2, text)
-{
-	this.attrs.text = text;
-	if (this.inflated)
-	{
-		RN.UIManager.updateView(this.tag, this.name, this.attrs);
-	}
-}
 
 
 return {
