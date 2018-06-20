@@ -43,7 +43,7 @@ update msg model =
 
 view : Model -> Expo.Node Msg
 view model =
-    Expo.text "hello Elm-Expo! new!"
+    Expo.text "hello Elm-Expo! third!"
 
 {--
     let

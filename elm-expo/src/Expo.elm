@@ -5,18 +5,19 @@ module Expo
         , text
         )
 
-import Native.Expo
+--import Native.Expo
+import VirtualDom
 
 
 {-| -}
-type Node msg
-    = Node
+type alias Node msg
+    = VirtualDom.Node msg
 
 
 {-| -}
 text : String -> Node msg
 text s =
-    Native.Expo.text s
+    VirtualDom.text s
 
 
 {-| -}
@@ -46,5 +47,5 @@ program :
     }
     -> Program Never model msg
 program =
-    Native.Expo.program
+    VirtualDom.program
 -- TODO(akavel): program = VirtualDom.program
