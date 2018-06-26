@@ -5,6 +5,12 @@ var RN = require('react-native');
 import { AppRegistry } from 'react-native';
 import BatchedBridge from 'react-native/Libraries/BatchedBridge/BatchedBridge.js';
 
+// var DEBUGF = function(args)
+// {
+//   console.log(`** ${args.callee}(${JSON.stringify(args)})`);
+// }
+var DEBUGF = function() {};
+
 function prepare()
 {
   if (typeof document !== 'undefined')
@@ -135,18 +141,6 @@ ExpoDocument.prototype.removeEventListener = function(name, handler)
     mouseEventHandlers[name].length = 0;
   }
 }
-ExpoDocument.prototype.createTextNode = function(text)
-{
-  var child = new ExpoDOM(allocateTag());
-  // TODO(akavel): prepend below fields with '_'
-  child._name = 'RCTRawText';
-  child._attrs = {text: text};
-  // RN.UIManager.createView(child._tag, 'RCTRawText', this._tag, {text: text});
-  // Without wrapper, I was getting error like in https://github.com/facebook/react-native/issues/13243
-  var wrapper = this.createElement('RCTText');
-  wrapper.appendChild(child);
-  return wrapper;
-}
 ExpoDocument.prototype.createElement = function(name)
 {
   var child = new ExpoDOM(allocateTag());
@@ -188,7 +182,7 @@ ExpoDOM.prototype._inflate = function()
   {
     // TODO(akavel): prepend below field with '_'
     this._root = this.parentNode._root;
-    RN.UIManager.createView(this._tag, this._name, this._root, this._attrs);
+    RN.UIManager.createView(this._tag, this._name, this._root, Object.assign({}, this._attrs));
     this._inflated = true;
     var childTags = [];
     for (var i = 0; i < this.childNodes.length; i++)
@@ -310,26 +304,29 @@ ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
 
 ExpoDOM.prototype.setAttribute = function(key, value)
 {
+  DEBUGF(arguments);
   this._attrs[key] = value;
   if (this._inflated)
   {
-    RN.UIManager.updateView(this._tag, this._name, this._attrs);
+    RN.UIManager.updateView(this._tag, this._name, Object.assign({}, this._attrs));
   }
 }
 ExpoDOM.prototype.removeAttribute = function(key)
 {
+  DEBUGF(arguments);
   delete this._attrs[key];
   if (this._inflated)
   {
-    RN.UIManager.updateView(this._tag, this._name, this._attrs);
+    RN.UIManager.updateView(this._tag, this._name, Object.assign({}, this._attrs));
   }
 }
 ExpoDOM.prototype.replaceData = function(_1, _2, text)
 {
+  DEBUGF(arguments);
   this._attrs.text = text;
   if (this._inflated)
   {
-    RN.UIManager.updateView(this._tag, this._name, this._attrs);
+    RN.UIManager.updateView(this._tag, this._name, Object.assign({}, this._attrs));
   }
 }
 

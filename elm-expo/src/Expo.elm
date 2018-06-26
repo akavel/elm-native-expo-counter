@@ -21,7 +21,12 @@ type alias Node msg
 {-| -}
 text : String -> Node msg
 text s =
-    VirtualDom.text s
+    -- Without RCTText wrapper, I was getting error like in https://github.com/facebook/react-native/issues/13243
+    VirtualDom.node "RCTText" []
+        [ VirtualDom.node "RCTRawText"
+            [ VirtualDom.attribute "text" s ]
+            [ ]
+        ]
 
 
 {-| -}
