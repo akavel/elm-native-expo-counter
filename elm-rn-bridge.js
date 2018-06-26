@@ -14,16 +14,6 @@ function prepare()
   }
   document = new ExpoDocument();
 
-  var process = process || {};
-  if (process.stdout)
-  {
-    console.log("GOT STDOUT!");
-  }
-  else
-  {
-    console.log("GOT no stdout -> CONSOLE ?");
-  }
-
   bridgeEvents();
 }
 
@@ -85,7 +75,7 @@ function bridgeEvents()
         pageX: (touches[0].pageX + 0.5)|0,
         pageY: (touches[0].pageY + 0.5)|0,
       };
-      console.log(`...mouseEvent: ${touchToMouse[name]} x${handlers.length} (${JSON.stringify(event)})`);
+      // console.log(`...mouseEvent: ${touchToMouse[name]} x${handlers.length} (${JSON.stringify(event)})`);
       // TODO(akavel): call all, or only first?
       if (handlers.length > 0)
       {

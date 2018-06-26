@@ -46,7 +46,7 @@ update msg model =
 
 view : Model -> Expo.Node Msg
 view model =
-    Debug.log "VIEW!" <| Expo.text "hello Elm-Expo! fourth!"
+    Expo.text "hello Elm-Expo! fourth!"
 
 {--
     let
