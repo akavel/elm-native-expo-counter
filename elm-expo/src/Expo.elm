@@ -3,6 +3,7 @@ module Expo
         ( beginnerProgram
         , Node
         , text
+        -- , onApp
         )
 
 --import Native.Expo
@@ -19,6 +20,9 @@ text : String -> Node msg
 text s =
     VirtualDom.text s
 
+
+-- {-| -}
+-- onTouch : Decoder msg -> (msg -> Task Never ()) -> Task Never Never
 
 {-| -}
 beginnerProgram :

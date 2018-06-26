@@ -14,10 +14,7 @@ function prepare()
   }
   document = new ExpoDocument();
 
-  // bridgeEvents();
-  // var rcee = BatchedBridge.getCallableModule('RCTEventEmitter');
-  // // console.log(`...in prepare: BB -> rcee = ${typeof rcee}`);
-  // console.log(`...in prepare: BB -> rcee = ${Object.keys(rcee).sort()}`);
+  bridgeEvents();
 }
 
 // bridge connects an Elm program to a React Native root element.
@@ -41,10 +38,6 @@ function bridge(elmMainModule)
     // Our new 'main' function will replace the one provided by RN.
     var main = function(appParameters)
     {
-      // var rcee = BatchedBridge.getCallableModule('RCTEventEmitter');
-      // console.log(`...BB -> rcee = ${Object.keys(rcee).sort()}`);
-      bridgeEvents();
-
       // ExpoDOM exposes a DOM-like API to RN nodes/views. Here, we wrap the
       // root RN node in ExpoDOM, and run the provided Elm.Main module on it.
       var fakeDOM = new ExpoDOM(appParameters.rootTag);
@@ -99,6 +92,32 @@ function ExpoDocument()
 ExpoDocument.prototype.createDocumentFragment = function()
 {
   return new ExpoDOM('FRAG');
+}
+ExpoDocument.prototype.addEventListener = function(name, handler)
+{
+  if (!eventHandlers.hasOwnProperty(name))
+  {
+    // TODO(akavel): throw an exception? or what?... :/
+    throw `...WARN: elm-rn-bridge/addEventListener: event name '${name}' not supported!`;
+  }
+  // TODO(akavel): keep more than 1 handler?
+  eventHandlers[name].length = 0;
+  eventHandlers[name].push(handler);
+  console.log(`...addEventListener: added handler! ${name}=${handler}`);
+}
+ExpoDocument.prototype.removeEventListener = function(name, handler)
+{
+  if (!eventHandlers.hasOwnProperty(name))
+  {
+    // TODO(akavel): throw an exception? or what?... :/
+    throw `...WARN: elm-rn-bridge/removeEventListener: event name '${name}' not supported!`;
+  }
+  if (eventHandlers[name].length > 0 &&
+    eventHandlers[name][0] == handler)
+  {
+    // TODO(akavel): somehow test if we entered this block and if it worked
+    eventHandlers[name].length = 0;
+  }
 }
 ExpoDocument.prototype.createTextNode = function(text)
 {
