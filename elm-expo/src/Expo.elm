@@ -5,7 +5,7 @@ module Expo
         , Node
         , view
         , text
-        , Property
+        , Attribute
         , attribute
         , Position
         , downs
@@ -22,7 +22,7 @@ type alias Node msg
 
 
 {-| -}
-view : List (Property msg) -> List (Node msg) -> Node msg
+view : List (Attribute msg) -> List (Node msg) -> Node msg
 view =
     VirtualDom.node "RCTView"
 
@@ -39,12 +39,12 @@ text s =
 
 
 {-| -}
-type alias Property msg
+type alias Attribute msg
     = VirtualDom.Property msg
 
 
 {-| -}
-attribute : String -> String -> Property msg
+attribute : String -> String -> Attribute msg
 attribute =
     VirtualDom.attribute
 
