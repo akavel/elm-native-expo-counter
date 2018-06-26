@@ -52,7 +52,9 @@ view model =
         , attribute "alignItems" "center"
         , attribute "justifyContent" "center"
         ]
-        [ text ("hello Elm-Expo! " ++ toString model.n ++ "!")
+        [ text "hello Elm-Expo!"
+        , text ("Counter: " ++ toString model.n)
+        , text "Touch anywhere on the screen to increase the counter!"
         ]
 
 {--
