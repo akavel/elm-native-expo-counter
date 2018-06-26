@@ -24,18 +24,21 @@ model =
 type Msg
     = Increment
     | Decrement
+    | TouchDown Expo.Position
 
 
--- update : Msg -> Model -> ( Model, Cmd Msg )
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
+-- update : Msg -> Model -> Model
 update msg model =
     case msg of
         Increment ->
-            -- ( { model | n = model.n + 1 }, Cmd.none )
-            { model | n = model.n + 1 }
+            ( { model | n = model.n + 1 }, Cmd.none )
 
         Decrement ->
-            { model | n = model.n - 1 }
+            ( { model | n = model.n - 1 }, Cmd.none )
+
+        TouchDown _ ->
+            ( { model | n = Debug.log "CLICKS:" (model.n + 1) }, Cmd.none )
 
 
 -- VIEW
@@ -43,7 +46,7 @@ update msg model =
 
 view : Model -> Expo.Node Msg
 view model =
-    Expo.text "hello Elm-Expo! fourth!"
+    Debug.log "VIEW!" <| Expo.text "hello Elm-Expo! fourth!"
 
 {--
     let
@@ -125,14 +128,9 @@ button msg color content =
 
 main : Program Never Model Msg
 main =
-    Expo.beginnerProgram
-        { model = model
+    Expo.program
+        { init = ( model, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = \model -> Expo.downs TouchDown
         }
-    -- Ui.program
-    --     { init = ( model, Cmd.none )
-    --     , view = view
-    --     , update = update
-    --     , subscriptions = \_ -> Sub.none
-    --     }

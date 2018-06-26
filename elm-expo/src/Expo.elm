@@ -1,13 +1,16 @@
 module Expo
     exposing
         ( beginnerProgram
+        , program
         , Node
         , text
-        -- , onApp
+        , Position
+        , downs
         )
 
 --import Native.Expo
 import VirtualDom
+import Mouse
 
 
 {-| -}
@@ -21,8 +24,18 @@ text s =
     VirtualDom.text s
 
 
--- {-| -}
--- onTouch : Decoder msg -> (msg -> Task Never ()) -> Task Never Never
+{-| -}
+type alias Position =
+    { x : Int
+    , y : Int
+    }
+
+
+{-| -}
+downs : (Position -> msg) -> Sub msg
+downs =
+    Mouse.downs
+
 
 {-| -}
 beginnerProgram :

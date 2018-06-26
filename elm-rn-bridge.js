@@ -14,6 +14,16 @@ function prepare()
   }
   document = new ExpoDocument();
 
+  var process = process || {};
+  if (process.stdout)
+  {
+    console.log("GOT STDOUT!");
+  }
+  else
+  {
+    console.log("GOT no stdout -> CONSOLE ?");
+  }
+
   bridgeEvents();
 }
 
@@ -54,36 +64,52 @@ function bridge(elmMainModule)
 function bridgeEvents()
 {
   console.log('...bridgeEvents init');
-  var oldemitter = BatchedBridge.getCallableModule('RCTEventEmitter');
+  var oldEmitter = BatchedBridge.getCallableModule('RCTEventEmitter');
   // NOTE(akavel): It seems we must do a copy of object properties here, as
   // otherwise a simple assignment of .receiveTouches didn't work (maybe the
   // object is made immutable somehow?)
-  var emitter = {};
-  Object.keys(oldemitter).forEach(function(key) {
-    emitter[key] = oldemitter[key];
+  var newEmitter = {};
+  Object.keys(oldEmitter).forEach(function(key) {
+    newEmitter[key] = oldEmitter[key];
   });
-  emitter.receiveTouches = function()
+  // TODO(akavel): what is 'changedIndices', and why 'touches' is an array? Is
+  // it for multi-touch?
+  newEmitter.receiveTouches = function(name, touches, changedIndices)
   {
-    console.log(`...receiveTouches: handlers=${eventHandlers.receiveTouches.length} args=${JSON.stringify(arguments)}`);
-    // TODO(akavel): call all, or only first?
-    if (eventHandlers.receiveTouches.length > 0)
+    console.log(`...receiveTouches: args=${JSON.stringify(arguments)}`);
+    // Translate RN touch events to DOM mouse events
+    if (touchToMouse.hasOwnProperty(name))
     {
-      eventHandlers.receiveTouches[0].apply(null, arguments);
+      var handlers = mouseEventHandlers[touchToMouse[name]];
+      var event = {
+        pageX: (touches[0].pageX + 0.5)|0,
+        pageY: (touches[0].pageY + 0.5)|0,
+      };
+      console.log(`...mouseEvent: ${touchToMouse[name]} x${handlers.length} (${JSON.stringify(event)})`);
+      // TODO(akavel): call all, or only first?
+      if (handlers.length > 0)
+      {
+        // TODO(akavel): handle multi-touch
+        // TODO(akavel): handle touches[0].target
+        // TODO(akavel): generate 'click' events
+        // TODO(akavel): handle all touching in similar way as in RN (esp. scrolling)
+        handlers[0].apply(null, [event]);
+      }
     }
-    // for (var i = 0; i < eventHandlers.receiveTouches.length; i++)
-    // {
-    //   eventHandlers.receiveTouches[i].apply(null, arguments);
-    // }
   };
-  BatchedBridge.registerCallableModule('RCTEventEmitter', emitter);
-  // console.log(`...in bridgeEvents: BB -> emitter = ${Object.keys(emitter).sort()}`);
-  // console.log(`...emitter.rt: ${emitter.receiveTouches}`);
-  // console.log(`...get again: ${BatchedBridge.getCallableModule('RCTEventEmitter').receiveTouches}`);
+  BatchedBridge.registerCallableModule('RCTEventEmitter', newEmitter);
 }
 
-var eventHandlers = {
-  // receiveEvents: [],
-  receiveTouches: [],
+var touchToMouse = {
+  topTouchStart: 'mousedown',
+  topTouchMove: 'mousemove',
+  topTouchEnd: 'mouseup',
+}
+
+var mouseEventHandlers = {
+  mousedown: [],
+  mousemove: [],
+  mouseup: [],
 }
 
 function ExpoDocument()
@@ -95,28 +121,28 @@ ExpoDocument.prototype.createDocumentFragment = function()
 }
 ExpoDocument.prototype.addEventListener = function(name, handler)
 {
-  if (!eventHandlers.hasOwnProperty(name))
+  if (!mouseEventHandlers.hasOwnProperty(name))
   {
     // TODO(akavel): throw an exception? or what?... :/
     throw `...WARN: elm-rn-bridge/addEventListener: event name '${name}' not supported!`;
   }
   // TODO(akavel): keep more than 1 handler?
-  eventHandlers[name].length = 0;
-  eventHandlers[name].push(handler);
+  mouseEventHandlers[name].length = 0;
+  mouseEventHandlers[name].push(handler);
   console.log(`...addEventListener: added handler! ${name}=${handler}`);
 }
 ExpoDocument.prototype.removeEventListener = function(name, handler)
 {
-  if (!eventHandlers.hasOwnProperty(name))
+  if (!mouseEventHandlers.hasOwnProperty(name))
   {
     // TODO(akavel): throw an exception? or what?... :/
     throw `...WARN: elm-rn-bridge/removeEventListener: event name '${name}' not supported!`;
   }
-  if (eventHandlers[name].length > 0 &&
-    eventHandlers[name][0] == handler)
+  if (mouseEventHandlers[name].length > 0 &&
+    mouseEventHandlers[name][0] == handler)
   {
     // TODO(akavel): somehow test if we entered this block and if it worked
-    eventHandlers[name].length = 0;
+    mouseEventHandlers[name].length = 0;
   }
 }
 ExpoDocument.prototype.createTextNode = function(text)
