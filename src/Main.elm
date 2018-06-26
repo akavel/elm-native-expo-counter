@@ -50,7 +50,7 @@ view model =
     Expo.view
         [ attribute "flex" "1"
         , attribute "alignItems" "center"
-        , attribute "justifyContents" "center"
+        , attribute "justifyContent" "center"
         ]
         [ text ("hello Elm-Expo! " ++ toString model.n ++ "!")
         ]
