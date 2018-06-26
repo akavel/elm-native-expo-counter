@@ -3,7 +3,10 @@ module Expo
         ( beginnerProgram
         , program
         , Node
+        , view
         , text
+        , Property
+        , attribute
         , Position
         , downs
         )
@@ -19,6 +22,12 @@ type alias Node msg
 
 
 {-| -}
+view : List (Property msg) -> List (Node msg) -> Node msg
+view =
+    VirtualDom.node "RCTView"
+
+
+{-| -}
 text : String -> Node msg
 text s =
     -- Without RCTText wrapper, I was getting error like in https://github.com/facebook/react-native/issues/13243
@@ -27,6 +36,17 @@ text s =
             [ VirtualDom.attribute "text" s ]
             [ ]
         ]
+
+
+{-| -}
+type alias Property msg
+    = VirtualDom.Property msg
+
+
+{-| -}
+attribute : String -> String -> Property msg
+attribute =
+    VirtualDom.attribute
 
 
 {-| -}

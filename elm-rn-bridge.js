@@ -305,7 +305,7 @@ ExpoDOM.prototype.replaceChild = function(newChild, oldChild)
 ExpoDOM.prototype.setAttribute = function(key, value)
 {
   DEBUGF(arguments);
-  this._attrs[key] = value;
+  this._attrs[key] = typedAttr(key, value);
   if (this._inflated)
   {
     RN.UIManager.updateView(this._tag, this._name, Object.assign({}, this._attrs));
@@ -329,6 +329,26 @@ ExpoDOM.prototype.replaceData = function(_1, _2, text)
     RN.UIManager.updateView(this._tag, this._name, Object.assign({}, this._attrs));
   }
 }
+
+
+// HACK(akavel): workaround for:
+//   Error while updating property 'flex' in shadow node of type: RCTView
+//
+//   java.lang.String cannot be cast to java.lang.Double
+//
+//   updateShadowNodeProp - ViewManagersPropertyCache.java:113
+//   setProperty - ViewmanagerPropertyUpdater.java:154
+//   ...
+// TODO: find some better solution, not requiring hardcoded conversions in JS... :(
+function typedAttr(name, value)
+{
+  var cast = attrs[name];
+  return cast ? cast(value) : value;
+}
+var attrs = {
+  flex: _double,
+}
+function _double(x) { return +(x); }
 
 
 module.exports = {

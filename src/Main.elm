@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Task
-import Expo
+import Expo exposing (..)
 
 
 -- MODEL
@@ -44,9 +44,15 @@ update msg model =
 -- VIEW
 
 
-view : Model -> Expo.Node Msg
+view : Model -> Node Msg
 view model =
-    Expo.text ("hello Elm-Expo! " ++ toString model.n ++ "!")
+    Expo.view
+        [ attribute "flex" "1"
+        , attribute "alignItems" "center"
+        , attribute "justifyContents" "center"
+        ]
+        [ text ("hello Elm-Expo! " ++ toString model.n ++ "!")
+        ]
 
 {--
     let
