@@ -6,6 +6,8 @@ Elm-Expo is an example Elm app for mobile phones, built with [React Native](http
 
 Under the hood, the app is built in a similar way as the [elm-ios](https://github.com/pzp1997/elm-ios) proof of concept project. But instead of using a custom-built helper app on the mobile phone, Elm-Expo reuses the already existing Expo app for this purpose.
 
+**NOTE:** Elm-Expo currently uses **very low-level mechanisms** for interacting with React Native / Expo. As such, it doesn't expose high-level RN views, such as ScrollView or Text (in mainstream RN, those are actually implemented in JavaScript, based the following, more primitive views). Instead, it provides access only to lower level primitives, such as RCTScrollView, RCTText, or RCTRawText.
+
 ## Architecture
 
 Starting from the Elm side, the app has the following main parts:
