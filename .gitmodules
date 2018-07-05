@@ -1,0 +1,3 @@
+[submodule "elm-expo"]
+	path = elm-expo
+	url = https://github.com/akavel/elm-expo

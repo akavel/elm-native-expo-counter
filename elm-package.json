@@ -5,8 +5,7 @@
     "license": "BSD3",
     "source-directories": [
         "src",
-        "elm-native-ui/src",
-        "elm-expo/src"
+        "elm-expo"
     ],
     "exposed-modules": [],
     "dependencies": {

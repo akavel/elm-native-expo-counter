@@ -34,7 +34,7 @@ MessageQueue.spy(info => {
   }
 });
 
-var elmrn = require('./elm-rn-bridge');
+var elmrn = require('./elm-expo/elm-expo-bridge');
 elmrn.prepare();
 const Elm = require('./elm');
 elmrn.bridge(Elm.Main);
