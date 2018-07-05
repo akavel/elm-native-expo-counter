@@ -1,8 +1,10 @@
 module Main exposing (..)
 
 import Task
+import Color exposing (Color)
 import Expo exposing (..)
 import Expo.LowLevel as LowLevel
+import Expo.Attribute as Attr
 
 
 -- MODEL
@@ -48,13 +50,43 @@ update msg model =
 view : Model -> Node Msg
 view model =
     Expo.view
-        [ attribute "flex" "1"
-        , attribute "alignItems" "center"
-        , attribute "justifyContent" "center"
+        [ Attr.double "flex" 1
+        , Attr.string "alignItems" "center"
+        , Attr.string "justifyContent" "center"
         ]
         [ text "hello Elm-Expo!"
         , text ("Counter: " ++ toString model.n)
         , text "Touch anywhere on the screen to increase the counter!"
+        , Expo.view
+            [ Attr.double "width" 80
+            , Attr.string "flexDirection" "row"
+            , Attr.string "justifyContent" "space-between"
+            ]
+            [ button Decrement Color.red "-"
+            , button Increment Color.green "+"
+            ]
+        ]
+
+button : Msg -> Color -> String -> Node Msg
+button msg color content =
+    node "RCTText"
+        [ Attr.color "color" Color.white
+        , Attr.string "textAlign" "center"
+        , Attr.color "backgroundColor" color
+        , Attr.double "paddingTop" 5
+        , Attr.double "paddingBottom" 5
+        , Attr.double "width" 30
+        , Attr.string "fontWeight" "bold"
+        , Attr.color "shadowColor" Color.black
+        , Attr.double "shadowOpacity" 0.25
+        -- , Attr.string "shadowOffset" 1 1
+        , Attr.double "shadowRadius" 5
+        -- , Attr.string "transform" { defaultTransform | rotate = Just "10deg" }
+        -- , Attr.on "press" msg
+        ]
+        [ node "RCTRawText"
+            [ Attr.string "text" content ]
+            [ ]
         ]
 
 {--

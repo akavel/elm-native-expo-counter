@@ -34,7 +34,8 @@ MessageQueue.spy(info => {
   }
 });
 
-var elmrn = require('./elm-expo/elm-expo-bridge');
+// See: https://medium.com/@arnaudrinquin/build-modular-application-with-npm-local-modules-dfc5ff047bcc
+var elmrn = require('elm-expo');
 elmrn.prepare();
 const Elm = require('./elm');
 elmrn.bridge(Elm.Main);
