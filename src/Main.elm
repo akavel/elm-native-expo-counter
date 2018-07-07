@@ -57,7 +57,6 @@ view model =
         ]
         [ text "hello Elm-Expo!"
         , text ("Counter: " ++ toString model.n)
-        , text "Touch anywhere on the screen to increase the counter!"
         , Expo.view
             [ Attr.double "width" 80
             , Attr.string "flexDirection" "row"
@@ -84,7 +83,7 @@ button msg color content =
         , Attr.double "shadowRadius" 5
         -- , Attr.string "transform" { defaultTransform | rotate = Just "10deg" }
         -- , Attr.on "press" msg
-        , on "mouseup" (Json.succeed msg)
+        , on "topTouchEnd" (Json.succeed msg)
         ]
         [ node "RCTRawText"
             [ Attr.string "text" content ]
