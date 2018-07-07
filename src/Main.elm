@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Task
 import Color exposing (Color)
+import Json.Decode as Json
 import Expo exposing (..)
 import Expo.LowLevel as LowLevel
 import Expo.Attribute as Attr
@@ -83,6 +84,7 @@ button msg color content =
         , Attr.double "shadowRadius" 5
         -- , Attr.string "transform" { defaultTransform | rotate = Just "10deg" }
         -- , Attr.on "press" msg
+        , on "mouseup" (Json.succeed msg)
         ]
         [ node "RCTRawText"
             [ Attr.string "text" content ]
@@ -173,5 +175,6 @@ main =
         { init = ( model, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = \model -> Expo.downs TouchDown
+        -- , subscriptions = \model -> Expo.downs TouchDown
+        , subscriptions = \_ -> Sub.none
         }
