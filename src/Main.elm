@@ -55,17 +55,27 @@ view model =
         , Attr.string "alignItems" "center"
         , Attr.string "justifyContent" "center"
         ]
-        [ text "hello Elm-Expo!"
-        , text ("Counter: " ++ toString model.n)
-        , Expo.view
-            [ Attr.double "width" 80
-            , Attr.string "flexDirection" "row"
-            , Attr.string "justifyContent" "space-between"
-            ]
-            [ button Decrement Color.red "-"
-            , button Increment Color.green "+"
+        [ node "RCTScrollView" []
+            [ Expo.view
+                [ Attr.bool "collapsable" False ]
+                [ Expo.view []
+                    ( List.range 1 100
+                    |> List.map (\n -> text ("Entry " ++ toString n))
+                    )
+                ]
             ]
         ]
+        -- [ text "hello Elm-Expo!"
+        -- , text ("Counter: " ++ toString model.n)
+        -- , Expo.view
+        --     [ Attr.double "width" 80
+        --     , Attr.string "flexDirection" "row"
+        --     , Attr.string "justifyContent" "space-between"
+        --     ]
+        --     [ button Decrement Color.red "-"
+        --     , button Increment Color.green "+"
+        --     ]
+        -- ]
 
 button : Msg -> Color -> String -> Node Msg
 button msg color content =
